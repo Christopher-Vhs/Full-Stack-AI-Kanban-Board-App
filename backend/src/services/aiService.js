@@ -1,7 +1,7 @@
 const { GoogleGenAI } = require("@google/genai");
 const ApiError = require("../utils/ApiError");
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.7-flash";
 
 let client = null;
 
