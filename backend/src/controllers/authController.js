@@ -25,7 +25,9 @@ const register = asyncHandler(async (req, res) => {
   if (!password || password.length < 6)
     throw ApiError.badRequest("Password must be at least 6 characters");
 
-  const existing = await query("SELECT id FROM users WHERE email = $1", [email]);
+  const existing = await query("SELECT id FROM users WHERE email = $1", [
+    email,
+  ]);
   if (existing.rows.length)
     throw ApiError.conflict("Email is already registered");
 
@@ -34,7 +36,7 @@ const register = asyncHandler(async (req, res) => {
     `INSERT INTO users (name, email, password_hash)
      VALUES ($1, $2, $3)
      RETURNING id, name, email, avatar_url, created_at`,
-    [name, email, password_hash]
+    [name, email, password_hash],
   );
 
   const user = rows[0];
@@ -71,3 +73,16 @@ const login = asyncHandler(async (req, res) => {
 
   res.json({ user: publicUser(user), token });
 });
+
+const me = asyncHandler(async (req, res) => {
+  const { rows } = await query(
+    "SELECT id, name, email, avatar_url, created_at FROM users WHERE id = $1",
+    [req.user.id],
+  );
+
+  if (!rows.length) throw ApiError.notFound("User not found");
+
+  res.json({ user: rows[0] });
+});
+
+module.exports = { register, login, me };
