@@ -46,3 +46,28 @@ const register = asyncHandler(async (req, res) => {
 
   res.status(201).json({ user: publicUser(user), token });
 });
+
+const login = asyncHandler(async (req, res) => {
+  const email = (req.body.email || "").trim().toLowerCase();
+  const { password } = req.body;
+
+  if (!email || !password)
+    throw ApiError.badRequest("Email and password are required");
+
+  const { rows } = await query("SELECT * FROM users WHERE email = $1", [email]);
+  const user = rows[0];
+
+  if (!user) throw ApiError.unauthorized("Invalid email or password");
+
+  const valid = await bcrypt.compare(password, user.password_hash);
+
+  if (!valid) throw ApiError.unauthorized("Invalid email or password");
+
+  const token = signToken({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+  });
+
+  res.json({ user: publicUser(user), token });
+});
